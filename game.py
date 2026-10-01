@@ -7,6 +7,7 @@ STEP = 20
 THRUST, ROTATE_SPEED, BURN_RATE, FUEL_MAX = 60.0, 2.4, 22.0, 300.0
 MAX_SPEED_X, MAX_SPEED_Y, MAX_ANGLE = 25.0, 40.0, 0.25
 FOOT = 12
+landing_particles = []
 
 
 def ship_color(fuel_ratio):
@@ -21,8 +22,27 @@ def ship_color(fuel_ratio):
 
 
 def on_landing(score):
-    """Called after a successful landing with the points just earned; add fireworks or bonuses here."""
-    pass
+    """Create a fireworks effect after a successful landing."""
+    global landing_particles
+
+    # Create a burst of particles.
+    for _ in range(35):
+        x = random.randint(150, WIDTH - 150)
+        y = random.randint(100, HEIGHT // 2)
+
+        angle = random.uniform(0, 2 * math.pi)
+        speed = random.uniform(1.5, 4.0)
+
+        vx = math.cos(angle) * speed
+        vy = math.sin(angle) * speed
+
+        color = (
+            random.randint(180, 255),
+            random.randint(100, 255),
+            random.randint(50, 255)
+        )
+
+        landing_particles.append([x, y, vx, vy, 60, color])
 
 
 def bonus_life_threshold():
@@ -158,6 +178,19 @@ class Game:
         if self.message:
             label = self.font.render(self.message, True, (255, 255, 120))
             screen.blit(label, label.get_rect(center=(WIDTH // 2, HEIGHT // 3)))
+        # Draw and update landing fireworks.
+        for particle in landing_particles[:]:
+            x, y, vx, vy, life, color = particle
+
+            pygame.draw.circle(screen, color, (int(x), int(y)), 3)
+
+            particle[0] += vx
+            particle[1] += vy
+            particle[3] += 0.05
+            particle[4] -= 1
+
+            if particle[4] <= 0:
+                landing_particles.remove(particle)
 
 
 def main():
